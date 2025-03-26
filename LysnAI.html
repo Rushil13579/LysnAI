@@ -1,0 +1,2331 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>LysnAI</title>
+    <!-- Add Orbitron font -->
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+      body {
+        margin: 0;
+        padding: 0;
+        background-color: #000;
+        width: 100vw;
+        height: 100vh;
+        overflow: hidden;
+        color: white;
+        font-family: 'Orbitron', sans-serif;
+      }
+
+      /* Nav bar container */
+      .nav-container {
+        position: fixed;
+        left: 50%;
+        bottom: 10%;
+        transform: translateX(-50%);
+        background-color: #1A1A1A; /* Darker grey box */
+        border-radius: 10px; /* Even less rounded */
+        padding: 10px 25px;
+        display: flex;
+        gap: 20px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+        z-index: 1000;
+      }
+
+      /* Nav button styles */
+      .nav-button {
+        background: transparent;
+        border: 2px solid transparent; /* Add transparent border by default to prevent jiggling */
+        color: white;
+        padding: 8px 18px; /* Adjust padding to account for the border */
+        border-radius: 8px; /* Less rounded */
+        cursor: pointer;
+        font-size: 16px;
+        font-weight: 500;
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+        font-family: 'Orbitron', sans-serif;
+        letter-spacing: 0.5px;
+      }
+
+      /* Hover effect */
+      .nav-button:hover {
+        border: 2px solid #1E90FF; /* Medium-bright pirate blue */
+      }
+
+      /* Active state */
+      .nav-button.active {
+        background-color: #1E90FF; /* Medium-bright pirate blue */
+        border-color: #1E90FF;
+        /* Remove glow effect */
+      }
+
+      /* Click animation - keeping scale but not transform */
+      .nav-button:active {
+        opacity: 0.9;
+      }
+
+      /* Page content */
+      .page {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        opacity: 0;
+        transition: opacity 0.5s ease;
+        pointer-events: none;
+      }
+
+      .page.active {
+        opacity: 1;
+        pointer-events: auto;
+      }
+      
+      /* Default page content styling */
+      .ear-container {
+        position: relative;
+        margin-bottom: 60px; /* Increased bottom margin to prevent overlap */
+      }
+      
+      .ear-icon {
+        width: 60px;
+        height: 60px;
+        background-image: url("resources/ear.png");
+        background-size: contain;
+        background-repeat: no-repeat;
+        background-position: center;
+        position: relative;
+        top: -3px; /* Adjust this value to move up (negative) or down (positive) */
+        left: 1px; /* Adjust this value to move left (negative) or right (positive) */
+      }
+      
+      .sound-wave {
+        position: absolute;
+        border: 2px solid #1E90FF;
+        border-radius: 50%;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+      }
+      
+      .wave-1 {
+        width: 100px;
+        height: 100px;
+        opacity: 0.8;
+        /* Add glow effect between wave 1 and wave 2 */
+        box-shadow: 0 0 15px rgba(30, 144, 255, 0.6);
+      }
+      
+      .wave-2 {
+        width: 130px;
+        height: 130px;
+        opacity: 0.5;
+      }
+      
+      .wave-3 {
+        width: 160px;
+        height: 160px;
+        opacity: 0.2;
+      }
+      
+      .page-title {
+        font-size: 1.8rem;
+        font-weight: 700;
+        margin-bottom: 8px;
+        font-family: 'Orbitron', sans-serif;
+        letter-spacing: 0.5px;
+      }
+      
+      .page-subtitle {
+        font-size: 1.2rem;
+        font-weight: 400;
+        color: #AAAAAA;
+        margin-top: 0;
+        font-family: 'Orbitron', sans-serif;
+        letter-spacing: 0.5px;
+      }
+      
+      /* Clickable audio file button */
+      .audio-file-button {
+        display: inline;
+        color: #AAAAAA;
+        text-decoration: underline;
+        cursor: pointer;
+        font-weight: 500;
+        transition: color 0.3s ease;
+        font-family: 'Orbitron', sans-serif;
+        letter-spacing: 0.5px;
+      }
+      
+      .audio-file-button:hover {
+        color: #3AA0FF;
+      }
+      
+      /* Input page specific styles */
+      .input-options {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        margin-top: -150px; /* Shift boxes higher up */
+      }
+      
+      .input-option-row {
+        display: flex;
+        align-items: flex-start; /* Align to the top */
+        gap: 30px;
+        margin-bottom: 30px;
+      }
+      
+      .input-box {
+        width: 300px; /* Larger square */
+        height: 300px; /* Exact same height as width for perfect square */
+        background-color: #1A1A1A; /* Darker grey */
+        border-radius: 8px; /* More square */
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+      }
+      
+      .input-box-content {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+      }
+      
+      .input-box-label {
+        position: absolute;
+        top: 20px;
+        left: 20px;
+        font-size: 1rem;
+        font-weight: 500;
+        color: #FFFFFF;
+        font-family: 'Orbitron', sans-serif;
+        letter-spacing: 0.5px;
+      }
+      
+      .input-box-size {
+        position: absolute;
+        top: 45px;
+        left: 20px;
+        font-size: 0.8rem;
+        color: #AAAAAA;
+        font-family: 'Orbitron', sans-serif;
+        letter-spacing: 0.5px;
+      }
+      
+      .or-divider {
+        font-size: 1.2rem;
+        color: #555555;
+        font-weight: 500;
+        align-self: center;
+        margin-top: 20px;
+        font-family: 'Orbitron', sans-serif;
+        letter-spacing: 1px;
+      }
+      
+      .analyse-button {
+        margin-top: 20px;
+        padding: 14px 40px; /* Increased height */
+        background-color: #FFFFFF;
+        color: #000000;
+        border: none;
+        border-radius: 8px; /* Less rounded */
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        font-family: 'Orbitron', sans-serif;
+        letter-spacing: 0.5px;
+      }
+      
+      .analyse-button:hover {
+        background-color: #E0E0E0;
+        transform: translateY(-2px);
+      }
+      
+      .analyse-button:active {
+        transform: translateY(0);
+      }
+      
+      /* Disabled analyse button styles */
+      .analyse-button.disabled {
+        opacity: 0.4;
+        cursor: not-allowed;
+        background-color: #CCC;
+      }
+      
+      .analyse-button.disabled:hover {
+        background-color: #CCC;
+        transform: translateY(0);
+      }
+      
+      /* Disabled nav button styles */
+      .nav-button.disabled {
+        opacity: 0.4;
+        cursor: not-allowed;
+      }
+      
+      .nav-button.disabled:hover {
+        border-color: transparent;
+      }
+      
+      /* Microphone and control styles */
+      .mic-container {
+        position: relative;
+        margin-top: 35px; /* Position at 45% from top */
+        margin-bottom: 50px;
+      }
+      
+      .mic-icon {
+        width: 55px;
+        height: 55px;
+        background-color: #FFF;
+        border-radius: 50%;
+        position: relative;
+        z-index: 2;
+        mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12,2A3,3 0 0,1 15,5V11A3,3 0 0,1 12,14A3,3 0 0,1 9,11V5A3,3 0 0,1 12,2M19,11C19,14.53 16.39,17.44 13,17.93V21H11V17.93C7.61,17.44 5,14.53 5,11H7A5,5 0 0,0 12,16A5,5 0 0,0 17,11H19Z' /%3E%3C/svg%3E") center/65% no-repeat;
+        -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12,2A3,3 0 0,1 15,5V11A3,3 0 0,1 12,14A3,3 0 0,1 9,11V5A3,3 0 0,1 12,2M19,11C19,14.53 16.39,17.44 13,17.93V21H11V17.93C7.61,17.44 5,14.53 5,11H7A5,5 0 0,0 12,16A5,5 0 0,0 17,11H19Z' /%3E%3C/svg%3E") center/65% no-repeat;
+        cursor: pointer;
+        transition: all 0.3s ease;
+      }
+      
+      .mic-icon:hover {
+        background-color: #E0E0E0;
+      }
+      
+      .mic-icon.recording {
+        background-color: #F44336; /* Red when recording */
+      }
+      
+      .mic-wave {
+        position: absolute;
+        border: 2px solid #1E90FF;
+        border-radius: 50%;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+      }
+      
+      .mic-wave-1 {
+        width: 55px; /* 50% smaller */
+        height: 55px; /* 50% smaller */
+        opacity: 0.8;
+        box-shadow: 0 0 15px rgba(30, 144, 255, 0.6);
+      }
+      
+      .mic-wave-2 {
+        width: 75px; /* 50% smaller */
+        height: 75px; /* 50% smaller */
+        opacity: 0.5;
+      }
+      
+      .mic-wave-3 {
+        width: 95px; /* 50% smaller */
+        height: 95px; /* 50% smaller */
+        opacity: 0.2;
+      }
+      
+      .control-buttons {
+        display: flex;
+        justify-content: space-between;
+        width: 200px;
+        position: absolute;
+        bottom: 20px;
+      }
+      
+      .control-btn {
+        width: 50px;
+        height: 50px;
+        background-color: #000000;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.3s ease;
+      }
+      
+      .control-btn:hover {
+        background-color: #444;
+      }
+      
+      .control-btn svg {
+        width: 24px;
+        height: 24px;
+        fill: white; /* All icons are white */
+      }
+      
+      .play-btn svg {
+        fill: #FFFFFF; /* Green */
+      }
+      
+      .save-btn svg {
+        fill: #FFFFFF; /* Blue */
+      }
+      
+      .delete-btn svg {
+        fill: #FFFFFF; /* Red */
+      }
+      
+      /* Upload file interface */
+      .upload-container {
+        position: relative;
+        margin-top: 115px;
+        margin-bottom: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        height: 250px;
+      }
+      
+      .waveform-icon {
+        width: 55px;
+        height: 55px;
+        background-color: #FFF;
+        position: relative;
+        z-index: 2;
+        margin-bottom: 20px;
+        mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z' /%3E%3C/svg%3E") center/contain no-repeat;
+        -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z' /%3E%3C/svg%3E") center/contain no-repeat;
+      }
+      
+      .upload-btn {
+        padding: 15px 20px;
+        background-color: #000000;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        font-size: 0.9rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        width: 250px;
+        position: absolute;
+        bottom: 20px;
+        font-family: 'Orbitron', sans-serif;
+        letter-spacing: 0.5px;
+      }
+      
+      .upload-btn:hover {
+        background-color: #444;
+      }
+      
+      .upload-icon {
+        width: 18px;
+        height: 18px;
+        fill: white;
+      }
+      
+      /* Hidden file input */
+      .file-input {
+        display: none;
+      }
+      
+      /* File selected interface */
+      .file-selected-container {
+        display: none;
+        position: absolute;
+        bottom: 20px;
+        width: 250px;
+        justify-content: space-between;
+        gap: 10px;
+      }
+      
+      .file-name-display {
+        padding: 15px 20px;
+        background-color: #000000;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        font-size: 0.9rem;
+        width: 75%;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        font-family: 'Orbitron', sans-serif;
+        letter-spacing: 0.5px;
+      }
+      
+      .file-delete-btn {
+        width: 50px;
+        height: 50px;
+        background-color: #000000;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.3s ease;
+      }
+      
+      .file-delete-btn:hover {
+        background-color: #444;
+      }
+      
+      .file-delete-icon {
+        width: 24px;
+        height: 24px;
+        fill: white;
+      }
+      
+      /* Error popup */
+      .error-popup {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background-color: rgba(0, 0, 0, 0.9);
+        color: white;
+        padding: 20px 30px;
+        border-radius: 8px;
+        z-index: 2000;
+        display: none;
+        font-family: 'Orbitron', sans-serif;
+        letter-spacing: 0.5px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+        border: 1px solid #1E90FF;
+      }
+      
+      /* Timer styles */
+      .recording-timer {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+        font-size: 1rem;
+        font-weight: 500;
+        color: #1E90FF;
+        font-family: 'Orbitron', sans-serif;
+        letter-spacing: 0.5px;
+        display: none;
+      }
+      
+      /* Disabled control button styles */
+      .control-btn.disabled {
+        opacity: 0.4;
+        cursor: not-allowed;
+        background-color: #333;
+      }
+      
+      .control-btn.disabled:hover {
+        background-color: #333;
+      }
+      
+      /* Disabled mic styles */
+      .mic-container.disabled .mic-icon {
+        opacity: 0.4;
+        cursor: not-allowed;
+        background-color: #AAA;
+      }
+      
+      .mic-container.disabled .mic-icon:hover {
+        background-color: #AAA;
+      }
+
+      /* Disabled box styles */
+      .input-box.disabled {
+        opacity: 0.7;
+      }
+
+      /* Summary page content styling */
+      .summary-content {
+        display: none; /* Hiding the original summary content */
+      }
+
+      /* New summary boxes layout */
+      .summary-boxes-container {
+        display: flex;
+        justify-content: space-between;
+        width: 90%;
+        max-width: 1400px;
+        margin: 0 auto;
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        padding: 0 5%;
+      }
+      
+      .summary-boxes-rows {
+        display: flex;
+        flex-direction: column;
+        width: 100%;
+      }
+      
+      .summary-boxes-row {
+        display: flex;
+        justify-content: flex-start;
+        width: 100%;
+        margin-bottom: 40px; /* Add spacing between rows */
+      }
+      
+      .summary-box {
+        background: linear-gradient(135deg, #1A1A1A 0%, #0A0A0A 100%); /* Gradient from grey to darker grey */
+        border-radius: 8px;
+        padding: 25px;
+        height: 250px; /* Fixed height for all boxes */
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5); /* Reduced initial shadow */
+        transition: box-shadow 0.3s ease;
+        display: flex;
+        flex-direction: column;
+      }
+      
+      .summary-box-title {
+        color: white;
+        font-weight: bold;
+        margin-top: 0;
+        margin-bottom: 15px;
+        font-family: 'Orbitron', sans-serif;
+        letter-spacing: 0.5px;
+        padding-bottom: 8px;
+      }
+      
+      .summary-box-subtitle {
+        font-size: 0.8rem;
+        color: #AAAAAA;
+        font-family: 'Orbitron', sans-serif;
+        letter-spacing: 0.5px;
+        margin-top: -10px;
+        margin-bottom: 15px;
+      }
+      
+      .summary-box-title.underlined {
+        border-bottom: 1px solid #555555;
+      }
+      
+      .summary-box-content {
+        flex: 1;
+        overflow-y: auto;
+      }
+      
+      .summary-box:hover {
+        box-shadow: 0 15px 30px rgba(0, 0, 0, 0.7); /* Only increase shadow depth on hover */
+      }
+      
+      .summary-box-left {
+        width: 45%; /* First box takes 45% of the container width */
+        margin-right: 40px;
+      }
+      
+      .summary-box-middle {
+        width: 20%; /* Second box is square, 20% width */
+        margin-right: 40px;
+      }
+      
+      .summary-box-right {
+        width: 25%; /* Third box takes remaining space, about 25% */
+      }
+      
+      .summary-box-bottom-left {
+        width: 25%; /* First bottom box */
+        margin-right: 40px;
+      }
+      
+      .summary-box-bottom-right {
+        width: 45%; /* Second bottom box */
+      }
+
+      /* Analysis loading indicator */
+      .analysis-status {
+        font-size: 1.2rem;
+        font-weight: 500;
+        margin-top: 20px;
+        margin-bottom: 20px;
+        color: #1E90FF;
+        font-family: 'Orbitron', sans-serif;
+        letter-spacing: 0.5px;
+        display: none;
+      }
+
+      /* Custom button states for analysis */
+      .analyse-button.processing {
+        background-color: #1E90FF; /* Medium-bright pirate blue */
+        color: #FFFFFF;
+        cursor: not-allowed;
+        opacity: 1;
+      }
+      
+      .analyse-button.processing:hover {
+        background-color: #1E90FF;
+        transform: translateY(0);
+      }
+      
+      .analyse-button.completed {
+        background-color: #4CAF50; /* Green */
+        color: #FFFFFF;
+        opacity: 1;
+      }
+      
+      .analyse-button.completed:hover {
+        background-color: #3E8E41; /* Darker green */
+      }
+      
+      /* Checkmark icon */
+      .checkmark {
+        display: inline-block;
+        width: 18px;
+        height: 18px;
+        margin-left: 8px;
+        position: relative;
+        top: 2px;
+      }
+
+      /* Processing indicator for all pages */
+      .processing-indicator {
+        font-size: 1.4rem;
+        font-weight: 600;
+        color: #1E90FF;
+        font-family: 'Orbitron', sans-serif;
+        letter-spacing: 0.5px;
+        position: absolute;
+        top: 60%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        display: none;
+      }
+
+      /* Add styles for feedback boxes */
+      .feedback-boxes-container {
+        display: flex;
+        justify-content: space-between;
+        width: 90%;
+        max-width: 1400px;
+        margin: 0 auto;
+        gap: 40px;
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        margin-top: -100px; /* Move boxes up by 100px from center */
+      }
+      
+      .feedback-box {
+        background-color: #1A1A1A; /* Dark grey */
+        width: 400px;
+        height: 400px; /* Square shape */
+        border-radius: 8px;
+        padding: 25px 25px 25px 20px; /* Slightly reduced left padding */
+        display: flex;
+        flex-direction: column;
+      }
+      
+      .feedback-box-title {
+        color: white;
+        font-weight: bold;
+        margin-top: 0;
+        margin-bottom: 15px;
+        font-family: 'Orbitron', sans-serif;
+        letter-spacing: 0.5px;
+        padding-bottom: 8px;
+        border-bottom: 1px solid #555555;
+        padding-left: 3px; /* Small left padding to match icon alignment */
+      }
+      
+      .feedback-box-content {
+        flex: 1;
+        overflow-y: auto;
+        color: #CCCCCC;
+        font-size: 1rem; /* Increased from 0.9rem */
+        line-height: 1.5;
+        padding-left: 0; /* Removed left padding to align with title */
+        text-align: left; /* Ensure text is left-aligned */
+        font-family: Helvetica, Arial, sans-serif; /* Changed from Orbitron to Helvetica */
+        letter-spacing: 0.5px; /* Match the title letter spacing */
+      }
+      
+      /* Style for feedback content paragraphs */
+      .feedback-box-content p {
+        margin: 12px 0;
+        text-align: left;
+      }
+
+      /* Export boxes container */
+      .export-boxes-container {
+        display: flex;
+        justify-content: center; /* Center the box horizontally */
+        width: 90%;
+        max-width: 1400px;
+        margin: 0 auto;
+        position: fixed;
+        top: 30%; /* Keep box positioned higher on the page */
+        left: 50%;
+        transform: translate(-50%, -50%);
+        padding: 0 5%;
+      }
+      
+      .export-box {
+        background: linear-gradient(135deg, #1A1A1A 0%, #0A0A0A 100%); /* Gradient from grey to darker grey */
+        border-radius: 8px;
+        padding: 25px;
+        height: 200px; /* Reduced from 250px to 200px */
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5); /* Reduced initial shadow */
+        transition: box-shadow 0.3s ease;
+        display: flex;
+        flex-direction: column;
+        width: 400px; /* Fixed width for the box */
+      }
+      
+      .export-box-title {
+        color: white;
+        font-weight: bold;
+        margin-top: 0;
+        margin-bottom: 15px;
+        font-family: 'Orbitron', sans-serif;
+        letter-spacing: 0.5px;
+        padding-bottom: 8px;
+        display: flex; /* Added to align title text with logo */
+        align-items: center; /* Vertically center logo with text */
+      }
+      
+      .export-box-title .logo {
+        width: auto; /* Auto width to maintain aspect ratio */
+        height: 1.2em; /* Match height of text */
+        margin-right: 8px; /* Space between logo and text */
+      }
+      
+      .export-box-subtitle {
+        font-size: 0.8rem;
+        color: #AAAAAA;
+        font-family: 'Orbitron', sans-serif;
+        letter-spacing: 0.5px;
+        margin-top: -10px;
+        margin-bottom: 15px;
+      }
+      
+      .export-box-title.underlined {
+        border-bottom: 1px solid #555555;
+      }
+      
+      .export-box-content {
+        flex: 1;
+        overflow-y: auto;
+        position: relative; /* Add relative positioning for absolute children */
+        display: flex;
+        flex-direction: column;
+        align-items: center; /* Center contents horizontally */
+      }
+      
+      .export-box:hover {
+        box-shadow: 0 15px 30px rgba(0, 0, 0, 0.7); /* Only increase shadow depth on hover */
+      }
+      
+      /* Remove the width overrides for individual boxes since all boxes should have equal width */
+      .export-box:not(:last-child) {
+        margin-right: 30px; /* Add consistent spacing between boxes */
+      }
+
+      /* Export text box and button styles */
+      .export-textbox {
+        width: calc(100% - 20px);
+        margin: 15px auto;
+        padding: 15px;
+        background-color: #333333;
+        border: 1px solid #555555;
+        border-radius: 6px;
+        color: white;
+        font-family: 'Orbitron', sans-serif;
+        letter-spacing: 0.5px;
+        font-size: 0.9rem;
+        height: 45px; /* 1.5x normal height, using explicit pixel value */
+        resize: none;
+        box-sizing: border-box;
+        display: block; /* Ensure it takes full width */
+        position: absolute;
+        bottom: 70px; /* Adjusted from 80px to 70px to fit in smaller box */
+        left: 0;
+        right: 0;
+        margin-left: auto;
+        margin-right: auto;
+      }
+
+      .export-button {
+        display: block;
+        width: calc(100% - 20px);
+        margin: 10px auto;
+        padding: 12px 20px;
+        background-color: #1E90FF; /* Medium-bright pirate blue */
+        color: white;
+        border: none;
+        border-radius: 6px;
+        font-weight: 500;
+        font-family: 'Orbitron', sans-serif;
+        letter-spacing: 0.5px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        font-size: 1.1rem; /* Increased font size */
+        position: absolute; /* Position at bottom of box */
+        bottom: 15px; /* Adjusted from 20px to 15px */
+        left: 0;
+        right: 0;
+        margin-left: auto;
+        margin-right: auto;
+      }
+
+      .export-box-content {
+        flex: 1;
+        overflow-y: auto;
+        position: relative; /* Add relative positioning for absolute children */
+        display: flex;
+        flex-direction: column;
+        align-items: center; /* Center contents horizontally */
+      }
+      
+      .export-button:hover {
+        background-color: #1a7fea;
+        transform: translateY(-2px);
+      }
+
+      /* Add after the export box definition */
+      .export-button.exporting {
+        background-color: #1E90FF;
+        opacity: 0.7;
+        cursor: not-allowed;
+      }
+      
+      .export-button.success {
+        background-color: #4CAF50; /* Green */
+      }
+      
+      .export-button.error {
+        background-color: #F44336; /* Red */
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Page content containers with default text and ear icon -->
+    <div id="input-page" class="page active">
+      <div class="input-options">
+        <div class="input-option-row">
+          <div class="input-box">
+            <span class="input-box-label">Upload File</span>
+            <span class="input-box-size">Max 25MB</span>
+            
+            <!-- Upload file interface -->
+            <div class="upload-container">
+              <div class="waveform-icon"></div>
+              
+              <!-- Hidden file input -->
+              <input type="file" id="audio-file-input" class="file-input" accept=".mp3,.mp4,.mpeg,.mpga,.m4a,.wav,.webm">
+              
+              <!-- Upload button - default state -->
+              <button class="upload-btn" id="upload-btn">
+                <svg class="upload-icon" viewBox="0 0 24 24">
+                  <path d="M9,16V10H5L12,3L19,10H15V16H9M5,20V18H19V20H5Z" />
+                </svg>
+                Upload audio here
+              </button>
+              
+              <!-- File selected state -->
+              <div class="file-selected-container" id="file-selected-container">
+                <div class="file-name-display" id="file-name-display"></div>
+                <button class="file-delete-btn" id="file-delete-btn">
+                  <svg class="file-delete-icon" viewBox="0 0 24 24">
+                    <path d="M19,4H15.5L14.5,3H9.5L8.5,4H5V6H19M6,19A2,2 0 0,0 8,21H16A2,2 0 0,0 18,19V7H6V19Z" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+          </div>
+          
+          <div class="or-divider">OR</div>
+          <div class="input-box" id="record-audio-box">
+            <span class="input-box-label">Record Audio</span>
+            <span class="input-box-size">Max 25MB</span>
+            <span class="recording-timer" id="recording-timer">00:00</span>
+            
+            <!-- Microphone with sound waves -->
+            <div class="mic-container" id="mic-container">
+              <div class="mic-wave mic-wave-3"></div>
+              <div class="mic-wave mic-wave-2"></div>
+              <div class="mic-wave mic-wave-1"></div>
+              <div class="mic-icon" id="mic-icon"></div>
+            </div>
+            
+            <!-- Control buttons -->
+            <div class="control-buttons">
+              <button class="control-btn play-btn disabled" id="play-btn">
+                <svg viewBox="0 0 24 24">
+                  <path d="M8,5.14V19.14L19,12.14L8,5.14Z" />
+                </svg>
+              </button>
+              <button class="control-btn save-btn disabled" id="save-btn">
+                <svg viewBox="0 0 24 24">
+                  <path d="M15,9H5V5H15M12,19A3,3 0 0,1 9,16A3,3 0 0,1 12,13A3,3 0 0,1 15,16A3,3 0 0,1 12,19M17,3H5C3.89,3 3,3.9 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V7L17,3Z" />
+                </svg>
+              </button>
+              <button class="control-btn delete-btn disabled" id="delete-btn">
+                <svg viewBox="0 0 24 24">
+                  <path d="M9,3V4H4V6H5V19A2,2 0 0,0 7,21H17A2,2 0 0,0 19,19V6H20V4H15V3H9M7,6H17V19H7V6M9,8V17H11V8H9M13,8V17H15V8H13Z" />
+                </svg>
+              </button>
+            </div>
+          </div>
+        </div>
+        <button class="analyse-button disabled">Analyse</button>
+      </div>
+      
+      <!-- Error popup -->
+      <div class="error-popup" id="error-popup">File size exceeds 25MB limit</div>
+    </div>
+    <div id="summary-page" class="page">
+      <div class="ear-container">
+        <div class="sound-wave wave-1"></div>
+        <div class="sound-wave wave-2"></div>
+        <div class="sound-wave wave-3"></div>
+        <div class="ear-icon"></div>
+      </div>
+      <div class="page-title">There's nothing to hear yet!</div>
+      <div class="page-subtitle">Drop an <span class="audio-file-button">audio file</span> and let's get started!</div>
+      <div class="analysis-status" id="analysis-status">Processing...</div>
+      <div class="summary-content" id="summary-content"></div>
+      
+      <!-- New summary boxes container -->
+      <div class="summary-boxes-container">
+        <div class="summary-boxes-rows">
+          <div class="summary-boxes-row">
+            <div class="summary-box summary-box-left" id="summary-box-left">
+              <div class="summary-box-content" id="summary-box-left-content">
+                <div style="display: flex; width: 100%; height: 100%;">
+                  <div style="width: 50%; padding-right: 15px; display: flex; flex-direction: column; justify-content: center;">
+                    <p style="color: #999999; margin-bottom: 10px; font-size: 1.2rem;">Welcome back,</p>
+                    <p style="color: #FFFFFF; font-weight: 600; font-size: 1.8rem; margin-top: 0; margin-bottom: 10px;">Rushil Jhaveri</p>
+                    <p style="color: #999999; margin-top: 0; font-size: 1.2rem;">Glad to see you again.</p>
+                  </div>
+                  <div style="width: 50%; display: flex; align-items: center; justify-content: center;">
+                    <img src="resources/logo.png" alt="Logo" style="max-width: 100%; max-height: 100%;">
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="summary-box summary-box-middle" id="summary-box-middle">
+              <h3 class="summary-box-title underlined">Satisfaction Rate</h3>
+              <div class="summary-box-content" id="summary-box-middle-content"></div>
+            </div>
+            <div class="summary-box summary-box-right" id="summary-box-right">
+              <h3 class="summary-box-title underlined">Call Summary</h3>
+              <div class="summary-box-content" id="summary-box-right-content"></div>
+            </div>
+          </div>
+          <div class="summary-boxes-row">
+            <div class="summary-box summary-box-bottom-left" id="summary-box-bottom-left">
+              <h3 class="summary-box-title underlined">Details Collected</h3>
+              <div class="summary-box-content" id="summary-box-bottom-left-content"></div>
+            </div>
+            <div class="summary-box summary-box-bottom-right" id="summary-box-bottom-right">
+              <h3 class="summary-box-title underlined">Interview Transcript</h3>
+              <div class="summary-box-content" id="summary-box-bottom-right-content"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="processing-indicator" id="summary-processing">Transcribing Audio...</div>
+    </div>
+    <div id="feedback-page" class="page">
+      <div class="ear-container">
+        <div class="sound-wave wave-1"></div>
+        <div class="sound-wave wave-2"></div>
+        <div class="sound-wave wave-3"></div>
+        <div class="ear-icon"></div>
+      </div>
+      <div class="page-title">There's nothing to hear yet!</div>
+      <div class="page-subtitle">Drop an <span class="audio-file-button">audio file</span> and let's get started!</div>
+      
+      <!-- Feedback boxes container -->
+      <div class="feedback-boxes-container">
+        <div class="feedback-box">
+          <h3 class="feedback-box-title">Areas Covered</h3>
+          <div class="feedback-box-content" id="areas-covered-content"></div>
+        </div>
+        <div class="feedback-box">
+          <h3 class="feedback-box-title">What did you miss?</h3>
+          <div class="feedback-box-content" id="missed-content"></div>
+        </div>
+        <div class="feedback-box">
+          <h3 class="feedback-box-title">Recommended Next Steps</h3>
+          <div class="feedback-box-content" id="next-steps-content"></div>
+        </div>
+      </div>
+      
+      <div class="processing-indicator" id="feedback-processing">Transcribing Audio...</div>
+    </div>
+    <div id="export-page" class="page">
+      <div class="ear-container">
+        <div class="sound-wave wave-1"></div>
+        <div class="sound-wave wave-2"></div>
+        <div class="sound-wave wave-3"></div>
+        <div class="ear-icon"></div>
+      </div>
+      <div class="page-title">There's nothing to hear yet!</div>
+      <div class="page-subtitle">Drop an <span class="audio-file-button">audio file</span> and let's get started!</div>
+      
+      <!-- Export boxes container -->
+      <div class="export-boxes-container">
+        <div class="export-box">
+          <h3 class="export-box-title underlined">
+            <img src="resources/sheets.png" alt="Sheets logo" class="logo">
+            Sheets
+          </h3>
+          <div class="export-box-content" id="export-box-sheets-content">
+            <input type="text" class="export-textbox" placeholder="Enter sheet URL or ID...">
+            <button class="export-button">Export to Sheets</button>
+          </div>
+        </div>
+      </div>
+      
+      <div class="processing-indicator" id="export-processing">Transcribing Audio...</div>
+    </div>
+
+    <!-- Navigation bar -->
+    <div class="nav-container">
+      <button id="input-btn" class="nav-button active">Input</button>
+      <button id="summary-btn" class="nav-button">Summary</button>
+      <button id="feedback-btn" class="nav-button">Feedback</button>
+      <button id="export-btn" class="nav-button">Export</button>
+    </div>
+
+    <script>
+      // Get all buttons and pages
+      const buttons = document.querySelectorAll('.nav-button');
+      const pages = document.querySelectorAll('.page');
+      const analyseButton = document.querySelector('.analyse-button');
+      const summaryTitle = document.querySelector('#summary-page .page-title');
+      const summarySubtitle = document.querySelector('#summary-page .page-subtitle');
+      const analysisStatus = document.getElementById('analysis-status');
+      const summaryContent = document.getElementById('summary-content');
+      
+      // Processing indicators for each page
+      const processingIndicators = {
+        summary: document.getElementById('summary-processing'),
+        feedback: document.getElementById('feedback-processing'),
+        export: document.getElementById('export-processing')
+      };
+      
+      // Analysis state tracking
+      let isAnalysing = false;
+      
+      // Set analyse button as disabled by default
+      analyseButton.classList.add('disabled');
+      
+      // Current session ID for analysis
+      let currentSessionId = null;
+      let eventSource = null;
+      
+      // Function to reset the analyse button to its default state
+      function resetAnalyseButton() {
+        if (analyseButton.classList.contains('completed')) {
+          updateAnalyseButtonText('default');
+        }
+      }
+      
+      // Function to update processing indicators across all pages
+      function updateProcessingIndicators(stage) {
+        const message = stage === 'transcribing' ? 'Transcribing Audio...' : 
+                        stage === 'analyzing' ? 'Analysing Audio...' : '';
+        
+        // Only show/hide indicators if we're in a processing state
+        if (message) {
+          // Show processing indicator on all pages
+          Object.values(processingIndicators).forEach(indicator => {
+            indicator.textContent = message;
+            indicator.style.display = 'block';
+          });
+          
+          // Hide default content on all pages
+          document.querySelectorAll('.page-title, .page-subtitle').forEach(el => {
+            el.style.display = 'none';
+          });
+          
+          // Hide feedback boxes during processing
+          document.querySelector('.feedback-boxes-container').style.display = 'none';
+          
+          // Hide summary boxes during processing
+          document.querySelector('.summary-boxes-container').style.display = 'none';
+          
+          // Hide export boxes during processing
+          document.querySelector('.export-boxes-container').style.display = 'none';
+        } else {
+          // Hide all processing indicators when complete
+          Object.values(processingIndicators).forEach(indicator => {
+            indicator.style.display = 'none';
+          });
+          
+          // Only restore default titles on non-summary pages and non-feedback pages if there's content
+          document.querySelectorAll('.page').forEach(page => {
+            if (page.id !== 'summary-page' && page.id !== 'feedback-page' && page.id !== 'export-page') {
+              const title = page.querySelector('.page-title');
+              const subtitle = page.querySelector('.page-subtitle');
+              if (title) title.style.display = 'block';
+              if (subtitle) subtitle.style.display = 'block';
+            }
+          });
+          
+          // For summary page, check if there's content
+          if (!summaryContent.textContent) {
+            const summaryPageTitle = document.querySelector('#summary-page .page-title');
+            const summaryPageSubtitle = document.querySelector('#summary-page .page-subtitle');
+            const summaryBoxesContainer = document.querySelector('.summary-boxes-container');
+            if (summaryPageTitle) summaryPageTitle.style.display = 'block';
+            if (summaryPageSubtitle) summaryPageSubtitle.style.display = 'block';
+            if (summaryBoxesContainer) summaryBoxesContainer.style.display = 'none';
+          } else {
+            // Hide ear container on summary page when analysis is done
+            document.querySelector('#summary-page .ear-container').style.display = 'none';
+            // Show summary boxes instead of old content
+            document.querySelector('.summary-boxes-container').style.display = 'flex';
+            document.querySelector('#summary-page .page-title').style.display = 'none';
+            document.querySelector('#summary-page .page-subtitle').style.display = 'none';
+          }
+          
+          // For feedback page, show boxes if there's analysis content, otherwise show default
+          const feedbackBoxesContainer = document.querySelector('.feedback-boxes-container');
+          
+          if (summaryContent.textContent) {
+            feedbackBoxesContainer.style.display = 'flex';
+            document.querySelector('#feedback-page .page-title').style.display = 'none';
+            document.querySelector('#feedback-page .page-subtitle').style.display = 'none';
+            // Hide ear container on feedback page when analysis is done
+            document.querySelector('#feedback-page .ear-container').style.display = 'none';
+          } else {
+            feedbackBoxesContainer.style.display = 'none';
+            document.querySelector('#feedback-page .page-title').style.display = 'block';
+            document.querySelector('#feedback-page .page-subtitle').style.display = 'block';
+            // Show ear container when no analysis
+            document.querySelector('#feedback-page .ear-container').style.display = 'block';
+          }
+          
+          // For export page, handle similarly to the feedback page
+          const exportBoxesContainer = document.querySelector('.export-boxes-container');
+          
+          if (summaryContent.textContent) {
+            exportBoxesContainer.style.display = 'flex';
+            document.querySelector('#export-page .page-title').style.display = 'none';
+            document.querySelector('#export-page .page-subtitle').style.display = 'none';
+            // Hide ear container on export page when analysis is done
+            document.querySelector('#export-page .ear-container').style.display = 'none';
+          } else {
+            exportBoxesContainer.style.display = 'none';
+            document.querySelector('#export-page .page-title').style.display = 'block';
+            document.querySelector('#export-page .page-subtitle').style.display = 'block';
+            // Show ear container when no analysis
+            document.querySelector('#export-page .ear-container').style.display = 'block';
+          }
+        }
+      }
+      
+      // Function to disable/enable navigation buttons
+      function setNavigationDisabled(disabled) {
+        buttons.forEach(button => {
+          if (disabled) {
+            button.classList.add('disabled');
+            button.style.pointerEvents = disabled ? 'none' : 'auto';
+          } else {
+            button.classList.remove('disabled');
+            button.style.pointerEvents = 'auto';
+          }
+        });
+      }
+      
+      // Function to update analyse button state
+      function updateAnalyseButtonState() {
+        // Enable analyse button if a file is selected OR if there's a recording
+        if (selectedFile || hasRecording) {
+          analyseButton.classList.remove('disabled');
+          analyseButton.style.pointerEvents = 'auto';
+        } else {
+          analyseButton.classList.add('disabled');
+          analyseButton.style.pointerEvents = 'none';
+        }
+      }
+      
+      // Function to update the analysis button text based on current state
+      function updateAnalyseButtonText(state) {
+        // Remove all state classes first
+        analyseButton.classList.remove('disabled', 'processing', 'completed');
+        
+        switch(state) {
+          case 'transcribing':
+            analyseButton.textContent = 'Transcribing...';
+            analyseButton.classList.add('processing');
+            break;
+          case 'analyzing':
+            analyseButton.textContent = 'Analyzing...';
+            analyseButton.classList.add('processing');
+            break;
+          case 'complete':
+            // Create checkmark icon SVG
+            const checkmarkSvg = '<svg class="checkmark" viewBox="0 0 24 24"><path fill="white" d="M9,16.17L4.83,12l-1.42,1.41L9,19 21,7l-1.41-1.41L9,16.17z"></path></svg>';
+            analyseButton.innerHTML = 'Analysed ' + checkmarkSvg;
+            analyseButton.classList.add('completed');
+            break;
+          case 'error':
+            analyseButton.textContent = 'Analysis Failed';
+            analyseButton.classList.add('disabled');
+            break;
+          default:
+            analyseButton.textContent = 'Analyse';
+            // Check if should be disabled
+            if (!selectedFile && !hasRecording) {
+              analyseButton.classList.add('disabled');
+            }
+        }
+      }
+      
+      // Function to show analysis results
+      function showAnalysisResults(result) {
+        // Hide default content
+        summaryTitle.style.display = 'none';
+        summarySubtitle.style.display = 'none';
+        
+        // Store the analysis result but don't display it in the old container
+        summaryContent.textContent = result;
+        
+        // Show the new summary boxes
+        document.querySelector('.summary-boxes-container').style.display = 'flex';
+        
+        // Update button state
+        updateAnalyseButtonText('complete');
+        analyseButton.classList.remove('disabled');
+        analyseButton.style.pointerEvents = 'auto';
+        
+        // Update feedback page with parsed results
+        updateFeedbackContent(result);
+      }
+
+      function extractResponse(analysisResult) {
+        // Parse the analysis result to extract structured data
+          // Similar to extractResponse in the old file
+          let response = null;
+          try {
+            // Try to parse as JSON first
+            response = JSON.parse(analysisResult);
+          } catch (error) {
+            // If not valid JSON, try to locate and extract the JSON portion
+            const jsonStart = analysisResult.indexOf('{');
+            const jsonEnd = analysisResult.lastIndexOf('}');
+            
+            if (jsonStart >= 0 && jsonEnd > jsonStart) {
+              const jsonStr = analysisResult.substring(jsonStart, jsonEnd + 1);
+              try {
+                response = JSON.parse(jsonStr);
+              } catch (innerError) {
+                console.error("Error parsing extracted JSON:", innerError);
+              }
+            }
+          }
+          return response;
+        }
+
+      // Function to update feedback content
+      function updateFeedbackContent(analysisResult) {
+        if (analysisResult) {
+          // Show feedback boxes and hide default feedback page content
+          document.querySelector('#feedback-page .page-title').style.display = 'none';
+          document.querySelector('#feedback-page .page-subtitle').style.display = 'none';
+          document.querySelector('.feedback-boxes-container').style.display = 'flex';
+          
+          const response = extractResponse(analysisResult);
+          
+          // If we have a parsed response with the expected structure
+          if (response && response.suggestions_for_interviewer) {
+            const suggestions = response.suggestions_for_interviewer;
+            
+            // Update Areas Covered box
+            if (suggestions.did_well && suggestions.did_well.length > 0) {
+              const didWellContent = document.getElementById('areas-covered-content');
+              didWellContent.innerHTML = createListFromArray(suggestions.did_well, 'areas-covered');
+            }
+            
+            // Update What did you miss? box
+            if (suggestions.did_not_cover && suggestions.did_not_cover.length > 0) {
+              const didNotCoverContent = document.getElementById('missed-content');
+              didNotCoverContent.innerHTML = createListFromArray(suggestions.did_not_cover, 'missed');
+            }
+            
+            // Update Recommended Next Steps box
+            if (suggestions.next_steps && suggestions.next_steps.length > 0) {
+              const nextStepsContent = document.getElementById('next-steps-content');
+              nextStepsContent.innerHTML = createListFromArray(suggestions.next_steps, 'next-steps');
+            }
+            
+            // Update Call Summary box
+            if (response.short_summary) {
+              const callSummaryContent = document.getElementById('summary-box-right-content');
+              callSummaryContent.style.color = '#FFFFFF';
+              callSummaryContent.textContent = response.short_summary;
+              callSummaryContent.style.fontFamily = 'Helvetica, Arial, sans-serif';
+            }
+            
+            // Update Satisfaction Rate box
+            if (response.overall_satisfaction_rate !== undefined) {
+              const satisfactionContent = document.getElementById('summary-box-middle-content');
+              satisfactionContent.innerHTML = '';
+              
+              // Create container for the rate display and progress indicator
+              const rateContainer = document.createElement('div');
+              rateContainer.style.position = 'relative';
+              rateContainer.style.width = '200px'; // Increased from 180px
+              rateContainer.style.height = '200px'; // Increased from 180px
+              rateContainer.style.margin = '10px auto'; // Adjusted margin for better vertical centering
+              
+              // Create the semi-circular progress indicator
+              const progressIndicator = document.createElement('div');
+              progressIndicator.style.position = 'absolute';
+              progressIndicator.style.top = '0';
+              progressIndicator.style.left = '0';
+              progressIndicator.style.width = '100%';
+              progressIndicator.style.height = '100%';
+              
+              // Convert satisfaction rate to percentage for the progress
+              const rate = parseInt(response.overall_satisfaction_rate, 10);
+              const percentage = isNaN(rate) ? 0 : Math.min(100, Math.max(0, rate));
+              
+              // Create SVG for the progress semi-circle
+              progressIndicator.innerHTML = `
+                <svg width="200" height="200" viewBox="0 0 200 200">
+                  <!-- Grey background semi-circle (bottom half) -->
+                  <path d="M 100,100 m 0,75 a 75,75 0 1 1 0,-150 a 75,75 0 1 1 0,150"
+                        fill="none"
+                        stroke="#555555"
+                        stroke-width="12"
+                        stroke-linecap="round" />
+                  
+                  
+                  <!-- Blue progress semi-circle (filled based on percentage) -->
+                  <path d="M 100,100 m 0,75 a 75,75 0 1 1 0,-150 a 75,75 0 1 1 0,150"
+                        fill="none"
+                        stroke="#1E90FF"
+                        stroke-width="12"
+                        stroke-linecap="round"
+                        stroke-dasharray="${percentage * 4.71}, 471"
+                        transform="rotate(-90, 100, 100)" />
+                </svg>
+              `;
+              
+              // Create the large rate number display (positioned inside the semi-circle)
+              const rateElement = document.createElement('div');
+              rateElement.style.position = 'absolute';
+              rateElement.style.top = '50%';
+              rateElement.style.left = '50%';
+              rateElement.style.transform = 'translate(-50%, -50%)';
+              rateElement.style.fontSize = '3.5rem'; // Increased from 4rem
+              rateElement.style.fontWeight = 'bold';
+              rateElement.style.color = '#FFFFFF';
+              rateElement.style.fontFamily = "'Orbitron', sans-serif";
+              rateElement.textContent = response.overall_satisfaction_rate;
+              
+              // Assemble the components
+              rateContainer.appendChild(progressIndicator);
+              rateContainer.appendChild(rateElement);
+              satisfactionContent.appendChild(rateContainer);
+            }
+            
+            // Update Details Collected box
+            if (response.details_of_interviewee) {
+              const detailsCollectedContent = document.getElementById('summary-box-bottom-left-content');
+              detailsCollectedContent.innerHTML = '';
+              detailsCollectedContent.style.fontFamily = 'Helvetica, Arial, sans-serif';
+              
+              // Process each detail and create a new line for each
+              response.details_of_interviewee.forEach(detail => {
+                // Create paragraph for each detail
+                const detailElement = document.createElement('p');
+                detailElement.style.margin = '8px 0';
+                
+                // Check if the detail contains a colon (indicating a label)
+                if (typeof detail === 'string' && detail.includes(':')) {
+                  const [label, value] = detail.split(':', 2);
+                  // Style the label in grey and the value in white
+                  detailElement.innerHTML = `<span style="color: #999999;">${label}:</span><span style="color: white;">${value}</span>`;
+                } else {
+                  // If no colon, just display the whole text
+                  detailElement.innerHTML = detail;
+                }
+                
+                // Add to the container
+                detailsCollectedContent.appendChild(detailElement);
+              });
+            }
+            
+            // Update Interview Transcript box with identified persons
+            if (response.identified_persons) {
+              const transcriptContent = document.getElementById('summary-box-bottom-right-content');
+              transcriptContent.innerHTML = '';
+              transcriptContent.style.fontFamily = 'Helvetica, Arial, sans-serif';
+              
+              // Process each person and create a new line for each
+              response.identified_persons.forEach(person => {
+                // Create paragraph for each person
+                const personElement = document.createElement('p');
+                personElement.style.margin = '8px 0';
+                
+                // Check if the person entry contains a colon (indicating a label)
+                if (typeof person === 'string' && person.includes(':')) {
+                  const [label, value] = person.split(':', 2);
+                  personElement.innerHTML = `<span style="color: #999999;">${label}:</span><span style="color: #FFFFFF;">${value}</span>`;
+                } else {
+                  // If no colon, just display the whole text in grey
+                  personElement.innerHTML = `<span style="color: #999999;">${person}</span>`;
+                }
+                
+                // Add to the container
+                transcriptContent.appendChild(personElement);
+              });
+            }
+          } else {
+            // If we couldn't parse structured data, show the raw text in the first box
+            document.getElementById('areas-covered-content').textContent = analysisResult;
+            document.getElementById('missed-content').textContent = '';
+            document.getElementById('next-steps-content').textContent = '';
+          }
+          
+          // Hide ear logo
+          document.querySelector('#feedback-page .ear-container').style.display = 'none';
+        }
+      }
+      
+      // Helper function to create an HTML list from an array
+      function createListFromArray(items, boxType) {
+        if (!items || !Array.isArray(items) || items.length === 0) return '';
+        
+        // Different icons for different box types
+        let icon = '';
+        if (boxType === 'areas-covered') {
+          // Green checkmark for Areas Covered
+          icon = '<span style="color: #4CAF50; margin-right: 12px; display: inline-block; width: 15px; text-align: left;">✓</span>';
+        } else if (boxType === 'missed') {
+          // Red cross for What did you miss
+          icon = '<span style="color: #F44336; margin-right: 12px; display: inline-block; width: 15px; text-align: left;">✗</span>';
+        } else if (boxType === 'next-steps') {
+          // White square box for Next Steps
+          icon = '<span style="color: white; margin-right: 12px; display: inline-block; width: 15px; text-align: left; font-size: 30px; line-height: 15px;">□</span>';
+        }
+        
+        // Return items as paragraphs with consistent spacing
+        return items.map(item => 
+          `<p style="margin: 14px 0; display: flex; align-items: flex-start; font-family: Helvetica, Arial, sans-serif;">
+            ${icon}<span style="flex: 1;">${item}</span>
+          </p>`
+        ).join('');
+      }
+      
+      // Function to reset analysis UI
+      function resetAnalysisUI() {
+        // Show default content
+        summaryTitle.style.display = 'block';
+        summarySubtitle.style.display = 'block';
+        
+        // Hide analysis content
+        analysisStatus.style.display = 'none';
+        summaryContent.textContent = '';
+        
+        // Hide summary boxes
+        document.querySelector('.summary-boxes-container').style.display = 'none';
+        
+        // Reset feedback page
+        document.querySelector('#feedback-page .page-title').style.display = 'block';
+        document.querySelector('#feedback-page .page-subtitle').style.display = 'block';
+        document.querySelector('.feedback-boxes-container').style.display = 'none';
+        
+        // Show ear containers
+        document.querySelector('#summary-page .ear-container').style.display = 'block';
+        document.querySelector('#feedback-page .ear-container').style.display = 'block';
+        document.querySelector('#export-page .ear-container').style.display = 'block';
+        
+        // Reset button state
+        updateAnalyseButtonText('default');
+      }
+      
+      // Function to disable all input controls during analysis
+      function setInputControlsDisabled(disabled) {
+        // Disable/enable recording controls
+        setRecordingDisabled(disabled);
+        
+        // Disable/enable upload controls
+        setUploadDisabled(disabled);
+        
+        // Disable/enable delete file button
+        if (fileDeleteBtn) {
+          if (disabled) {
+            fileDeleteBtn.style.pointerEvents = 'none';
+            fileDeleteBtn.style.opacity = '0.4';
+          } else {
+            fileDeleteBtn.style.pointerEvents = 'auto';
+            fileDeleteBtn.style.opacity = '1';
+          }
+        }
+      }
+      
+      // Function to reset input state (clear uploaded and recorded files)
+      function resetInputState() {
+        // Reset file upload
+        fileInput.value = '';
+        selectedFile = null;
+        uploadBtn.style.display = 'flex';
+        fileSelectedContainer.style.display = 'none';
+        
+        // Reset recording
+        recordedAudio = null;
+        recordedBlob = null;
+        hasRecording = false;
+        
+        // Reset control buttons
+        playBtn.classList.add('disabled');
+        saveBtn.classList.add('disabled');
+        deleteBtn.classList.add('disabled');
+        
+        // Hide timer
+        recordingTimer.style.display = 'none';
+        
+        // Update analyse button state
+        analyseButton.classList.add('disabled');
+        analyseButton.style.pointerEvents = 'none';
+      }
+
+      // Function to start analysis
+      function startAnalysis() {
+        // Prepare form data
+        const formData = new FormData();
+        
+        // Store copies of the current data for the API request
+        let fileForRequest = null;
+        
+        // Check if we have a file or recording
+        if (selectedFile) {
+          fileForRequest = selectedFile;
+          formData.append('audio_file', selectedFile);
+        } else if (recordedBlob) {
+          // Create a File object from the blob
+          fileForRequest = new File([recordedBlob], 'recording.mp3', { type: 'audio/mp3' });
+          formData.append('audio_file', fileForRequest);
+        } else {
+          console.error('No audio file or recording to analyze');
+          return;
+        }
+        
+        // Add job role (empty for now, could be added as a feature later)
+        formData.append('job_role', '');
+        
+        // Set analysis state
+        isAnalysing = true;
+        
+        // Disable analyse button during processing
+        analyseButton.classList.add('disabled');
+        analyseButton.style.pointerEvents = 'none';
+        updateAnalyseButtonText('transcribing');
+        
+        // Show processing indicators
+        updateProcessingIndicators('transcribing');
+        
+        // Disable all input controls
+        setInputControlsDisabled(true);
+        
+        // Reset input state to clear uploaded and recorded files
+        resetInputState();
+        
+        // Make API request
+        fetch('/analyze', {
+          method: 'POST',
+          body: formData
+        })
+        .then(response => {
+          if (!response.ok) {
+            throw new Error('Network response was not ok');
+          }
+          return response.json();
+        })
+        .then(data => {
+          // Store session ID
+          currentSessionId = data.session_id;
+          
+          // Start listening for updates
+          startEventStream(currentSessionId);
+          
+          // Note: no longer redirecting to summary page
+        })
+        .catch(error => {
+          console.error('Error starting analysis:', error);
+          updateAnalyseButtonText('error');
+          
+          // Hide processing indicators
+          updateProcessingIndicators('');
+          
+          // Set analysis state
+          isAnalysing = false;
+          
+          // Re-enable input controls
+          setInputControlsDisabled(false);
+        });
+      }
+      
+      // Function to start event stream for updates
+      function startEventStream(sessionId) {
+        // Close any existing event source
+        if (eventSource) {
+          eventSource.close();
+        }
+        
+        // Create new event source
+        eventSource = new EventSource(`/analysis_stream/${sessionId}`);
+        
+        // Handle incoming messages
+        eventSource.onmessage = function(event) {
+          const data = JSON.parse(event.data);
+          
+          // Update UI based on current stage
+          switch(data.stage) {
+            case 'transcribing':
+              updateAnalyseButtonText('transcribing');
+              updateProcessingIndicators('transcribing');
+              break;
+            case 'analyzing':
+              updateAnalyseButtonText('analyzing');
+              updateProcessingIndicators('analyzing');
+              break;
+            case 'complete':
+              // Update the button to show completed state
+              updateAnalyseButtonText('complete');
+              eventSource.close();
+              
+              // Store the result for viewing
+              summaryContent.textContent = data.result;
+              
+              // Update summary page
+              summaryTitle.style.display = 'none';
+              summarySubtitle.style.display = 'none';
+              analysisStatus.style.display = 'none';
+              
+              // Show the new summary boxes
+              document.querySelector('.summary-boxes-container').style.display = 'flex';
+              
+              // Hide processing indicators
+              updateProcessingIndicators('');
+              
+              // Set analysis state
+              isAnalysing = false;
+              
+              // Re-enable analyse button - remain clickable
+              analyseButton.style.pointerEvents = 'auto';
+              
+              // Re-enable input controls after analysis completes
+              setInputControlsDisabled(false);
+              
+              // Update feedback content
+              updateFeedbackContent(data.result);
+              break;
+            case 'error':
+              updateAnalyseButtonText('error');
+              eventSource.close();
+              
+              // Hide processing indicators
+              updateProcessingIndicators('');
+              
+              // Set analysis state
+              isAnalysing = false;
+              
+              // Re-enable analyse button
+              analyseButton.style.pointerEvents = 'auto';
+              
+              // Re-enable input controls
+              setInputControlsDisabled(false);
+              break;
+            default:
+              // Unknown stage
+              console.log(`Processing: ${data.stage}`);
+          }
+        };
+        
+        // Handle errors
+        eventSource.onerror = function(error) {
+          console.error('EventSource error:', error);
+          updateAnalyseButtonText('error');
+          eventSource.close();
+          
+          // Hide processing indicators
+          updateProcessingIndicators('');
+          
+          // Set analysis state
+          isAnalysing = false;
+          
+          // Re-enable analyse button
+          analyseButton.style.pointerEvents = 'auto';
+          
+          // Re-enable input controls
+          setInputControlsDisabled(false);
+        };
+      }
+      
+      // Add click event listeners to each button
+      buttons.forEach(button => {
+        button.addEventListener('click', function() {
+          // Prevent navigation if recording is in progress
+          if (isRecording) {
+            console.log('Cannot change tabs while recording is in progress');
+            return;
+          }
+          
+          // Reset analyse button when switching tabs if analysis is not in progress
+          if (!isAnalysing) {
+            resetAnalyseButton();
+          }
+          
+          // Remove active class from all buttons and pages
+          buttons.forEach(btn => btn.classList.remove('active'));
+          pages.forEach(page => page.classList.remove('active'));
+          
+          // Add active class to clicked button
+          this.classList.add('active');
+          
+          // Get the page ID from button ID
+          const pageId = this.id.replace('-btn', '-page');
+          
+          // Show the corresponding page
+          document.getElementById(pageId).classList.add('active');
+        });
+      });
+      
+      // Add click event listener to audio file buttons - now activating the input tab
+      document.querySelectorAll('.audio-file-button').forEach(button => {
+        button.addEventListener('click', function(e) {
+          e.preventDefault();
+          // Prevent navigation if recording is in progress
+          if (isRecording) {
+            console.log('Cannot change tabs while recording is in progress');
+            return;
+          }
+          
+          // Reset analyse button when clicking audio file button
+          if (!isAnalysing) {
+            resetAnalyseButton();
+          }
+          
+          // Simulate click on input button
+          document.getElementById('input-btn').click();
+        });
+      });
+      
+      // Add click event listener to analyse button
+      analyseButton.addEventListener('click', function() {
+        // Prevent analysis if recording is in progress or button is disabled
+        if (isRecording || this.classList.contains('disabled')) {
+          console.log('Cannot analyze: recording in progress or no input available');
+          return;
+        }
+        
+        // Start analysis
+        startAnalysis();
+      });
+      
+      // Audio recording functionality
+      const micIcon = document.getElementById('mic-icon');
+      const micContainer = document.getElementById('mic-container');
+      const recordAudioBox = document.getElementById('record-audio-box');
+      const recordingTimer = document.getElementById('recording-timer');
+      const playBtn = document.getElementById('play-btn');
+      const saveBtn = document.getElementById('save-btn');
+      const deleteBtn = document.getElementById('delete-btn');
+      
+      // Audio recording variables
+      let mediaRecorder;
+      let audioChunks = [];
+      let recordedAudio = null;
+      let recordedBlob = null;
+      let recordingStartTime;
+      let recordingTimerInterval;
+      let isRecording = false;
+      let hasRecording = false;
+      
+      // Function to toggle record state
+      function toggleRecording() {
+        // If there's already a recording, don't allow starting a new one
+        if (hasRecording && !isRecording) {
+          console.log('Delete existing recording before starting a new one');
+          return;
+        }
+        
+        if (!isRecording) {
+          startRecording();
+        } else {
+          stopRecording();
+        }
+      }
+      
+      // Start recording function
+      async function startRecording() {
+        try {
+          // Disable upload box
+          setUploadDisabled(true);
+          
+          // Disable navigation buttons
+          setNavigationDisabled(true);
+          
+          // Disable analyse button
+          analyseButton.classList.add('disabled');
+          analyseButton.style.pointerEvents = 'none';
+          
+          // Request microphone access
+          const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+          
+          // Create media recorder
+          mediaRecorder = new MediaRecorder(stream);
+          audioChunks = [];
+          
+          // Event handler for data available
+          mediaRecorder.ondataavailable = (event) => {
+            audioChunks.push(event.data);
+          };
+          
+          // Event handler for stopping
+          mediaRecorder.onstop = () => {
+            // Create blob from audio chunks
+            recordedBlob = new Blob(audioChunks, { type: 'audio/wav' });
+            
+            // Create audio URL
+            const audioURL = URL.createObjectURL(recordedBlob);
+            
+            // Create and properly initialize the audio element
+            recordedAudio = new Audio();
+            recordedAudio.src = audioURL;
+            
+            // Preload the audio
+            recordedAudio.preload = 'auto';
+            
+            // Add event listener for when audio is loaded
+            recordedAudio.addEventListener('canplaythrough', () => {
+              console.log('Audio loaded and ready to play');
+            });
+            
+            // Add error handling
+            recordedAudio.addEventListener('error', (e) => {
+              console.error('Error loading audio:', e);
+            });
+            
+            // Set has recording flag
+            hasRecording = true;
+            
+            // Enable control buttons
+            playBtn.classList.remove('disabled');
+            saveBtn.classList.remove('disabled');
+            deleteBtn.classList.remove('disabled');
+            
+            // Enable analyse button
+            updateAnalyseButtonState();
+            
+            // Re-enable navigation
+            setNavigationDisabled(false);
+            
+            console.log('Recording stopped, audio saved');
+          };
+          
+          // Request data every second to ensure we capture data even on short recordings
+          mediaRecorder.start(1000);
+          isRecording = true;
+          
+          // Reset and start timer
+          recordingTimer.textContent = "00:00";
+          recordingStartTime = Date.now();
+          recordingTimer.style.display = 'block';
+          recordingTimerInterval = setInterval(updateRecordingTimer, 1000);
+          
+          // Update UI
+          micIcon.classList.add('recording');
+          
+          console.log('Recording started');
+        } catch (error) {
+          console.error('Error starting recording:', error);
+          alert('Could not access microphone. Please check permissions.');
+          
+          // Re-enable upload box if recording fails
+          setUploadDisabled(false);
+          
+          // Re-enable navigation buttons
+          setNavigationDisabled(false);
+        }
+      }
+      
+      // Stop recording function
+      function stopRecording() {
+        if (mediaRecorder && isRecording) {
+          mediaRecorder.stop();
+          isRecording = false;
+          
+          // Stop all audio tracks
+          mediaRecorder.stream.getTracks().forEach(track => track.stop());
+          
+          // Stop timer
+          clearInterval(recordingTimerInterval);
+          
+          // Update UI
+          micIcon.classList.remove('recording');
+          
+          console.log('Recording stopped');
+        }
+      }
+      
+      // Update recording timer
+      function updateRecordingTimer() {
+        const elapsedTime = Date.now() - recordingStartTime;
+        const seconds = Math.floor((elapsedTime / 1000) % 60);
+        const minutes = Math.floor((elapsedTime / (1000 * 60)) % 60);
+        
+        recordingTimer.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+      }
+      
+      // Function to disable recording when file is uploaded
+      function setRecordingDisabled(disabled) {
+        if (disabled) {
+          recordAudioBox.classList.add('disabled');
+          micContainer.classList.add('disabled');
+          
+          // Disable mic icon and buttons
+          micIcon.removeEventListener('click', toggleRecording);
+          micIcon.style.pointerEvents = 'none';
+          
+          // Disable all control buttons
+          playBtn.classList.add('disabled');
+          saveBtn.classList.add('disabled');
+          deleteBtn.classList.add('disabled');
+          
+          // Stop any ongoing recording
+          if (isRecording) {
+            stopRecording();
+          }
+          
+          // Reset recorded audio
+          recordedAudio = null;
+          recordedBlob = null;
+          hasRecording = false;
+          
+          // Update analyse button
+          updateAnalyseButtonState();
+        } else {
+          recordAudioBox.classList.remove('disabled');
+          micContainer.classList.remove('disabled');
+          
+          // Enable mic icon
+          micIcon.addEventListener('click', toggleRecording);
+          micIcon.style.pointerEvents = 'auto';
+          
+          // Keep control buttons disabled until recording is done
+          if (!hasRecording) {
+            playBtn.classList.add('disabled');
+            saveBtn.classList.add('disabled');
+            deleteBtn.classList.add('disabled');
+          }
+        }
+      }
+      
+      // Function to disable upload when recording
+      function setUploadDisabled(disabled) {
+        const uploadBox = document.querySelector('.input-box:first-child');
+        
+        if (disabled) {
+          uploadBox.classList.add('disabled');
+          uploadBtn.style.pointerEvents = 'none';
+          uploadBtn.style.opacity = '0.4';
+        } else {
+          uploadBox.classList.remove('disabled');
+          uploadBtn.style.pointerEvents = 'auto';
+          uploadBtn.style.opacity = '1';
+        }
+      }
+      
+      // Mic icon click handler
+      micIcon.addEventListener('click', function() {
+        // Reset analyse button if it was completed and we're not recording
+        if (!isAnalysing && !isRecording) {
+          resetAnalyseButton();
+        }
+        
+        toggleRecording();
+      });
+      
+      // Add click event listeners to control buttons with disabled check
+      playBtn.addEventListener('click', function() {
+        if (!playBtn.classList.contains('disabled') && recordedAudio) {
+          try {
+            // Reset the audio to the beginning
+            recordedAudio.currentTime = 0;
+            
+            // Ensure audio is at audible volume
+            recordedAudio.volume = 1.0;
+            
+            // Play the audio with a promise to catch any issues
+            const playPromise = recordedAudio.play();
+            
+            if (playPromise !== undefined) {
+              playPromise.then(() => {
+                console.log('Audio playback started successfully');
+              }).catch(error => {
+                console.error('Error playing audio:', error);
+                alert('Could not play the audio. Please try again.');
+              });
+            }
+            
+            console.log('Play button clicked - playing recorded audio');
+          } catch (error) {
+            console.error('Error in play button handler:', error);
+          }
+        }
+      });
+      
+      saveBtn.addEventListener('click', function() {
+        if (!saveBtn.classList.contains('disabled') && recordedBlob) {
+          // Create download link
+          const downloadLink = document.createElement('a');
+          downloadLink.href = URL.createObjectURL(recordedBlob);
+          downloadLink.download = 'recording_' + new Date().toISOString().replace(/[:.]/g, '-') + '.mp3';
+          
+          // Trigger download
+          document.body.appendChild(downloadLink);
+          downloadLink.click();
+          document.body.removeChild(downloadLink);
+          
+          console.log('Save button clicked - downloading recording as MP3');
+        }
+      });
+      
+      deleteBtn.addEventListener('click', function() {
+        if (!deleteBtn.classList.contains('disabled')) {
+          // Reset analyse button if it was completed
+          if (!isAnalysing) {
+            resetAnalyseButton();
+          }
+          
+          // Reset recorded audio
+          recordedAudio = null;
+          recordedBlob = null;
+          hasRecording = false;
+          
+          // Disable control buttons
+          playBtn.classList.add('disabled');
+          saveBtn.classList.add('disabled');
+          deleteBtn.classList.add('disabled');
+          
+          // Hide timer
+          recordingTimer.style.display = 'none';
+          
+          // Re-enable upload box
+          setUploadDisabled(false);
+          
+          // Update analyse button state
+          updateAnalyseButtonState();
+          
+          console.log('Delete button clicked - recording deleted');
+        }
+      });
+      
+      // File upload functionality
+      const fileInput = document.getElementById('audio-file-input');
+      const uploadBtn = document.getElementById('upload-btn');
+      const fileSelectedContainer = document.getElementById('file-selected-container');
+      const fileNameDisplay = document.getElementById('file-name-display');
+      const fileDeleteBtn = document.getElementById('file-delete-btn');
+      const errorPopup = document.getElementById('error-popup');
+      
+      // Maximum file size in bytes (25MB)
+      const MAX_FILE_SIZE = 25 * 1024 * 1024;
+      
+      // Store the selected file
+      let selectedFile = null;
+      
+      // Upload button click handler
+      uploadBtn.addEventListener('click', function() {
+        // Prevent upload if recording is in progress
+        if (isRecording) {
+          console.log('Cannot upload while recording is in progress');
+          return;
+        }
+        
+        // Reset analyse button if it was completed
+        if (!isAnalysing) {
+          resetAnalyseButton();
+        }
+        
+        fileInput.click();
+      });
+      
+      // File input change handler
+      fileInput.addEventListener('change', function(event) {
+        // Prevent upload if recording is in progress
+        if (isRecording) {
+          console.log('Cannot upload while recording is in progress');
+          fileInput.value = '';
+          return;
+        }
+        
+        const file = event.target.files[0];
+        
+        if (file) {
+          // Check file size
+          if (file.size > MAX_FILE_SIZE) {
+            // Show error popup
+            errorPopup.style.display = 'block';
+            
+            // Hide error popup after 3 seconds
+            setTimeout(() => {
+              errorPopup.style.display = 'none';
+            }, 3000);
+            
+            // Reset file input
+            fileInput.value = '';
+            return;
+          }
+          
+          // Store the selected file
+          selectedFile = file;
+          
+          // Display file name (truncate if too long)
+          let fileName = file.name;
+          if (fileName.length > 15) {
+            const extension = fileName.split('.').pop();
+            fileName = fileName.substring(0, 10) + '...' + extension;
+          }
+          
+          fileNameDisplay.textContent = fileName;
+          
+          // Show selected file interface, hide upload button
+          uploadBtn.style.display = 'none';
+          fileSelectedContainer.style.display = 'flex';
+          
+          // Disable recording functionality
+          setRecordingDisabled(true);
+          
+          // Update analyse button state
+          updateAnalyseButtonState();
+          
+          console.log('File selected:', file.name, 'Size:', Math.round(file.size / 1024), 'KB');
+        }
+      });
+      
+      // Delete button click handler
+      fileDeleteBtn.addEventListener('click', function() {
+        // Reset analyse button if it was completed
+        if (!isAnalysing) {
+          resetAnalyseButton();
+        }
+        
+        // Reset file input
+        fileInput.value = '';
+        selectedFile = null;
+        
+        // Show upload button, hide selected file interface
+        uploadBtn.style.display = 'flex';
+        fileSelectedContainer.style.display = 'none';
+        
+        // Re-enable recording functionality
+        setRecordingDisabled(false);
+        
+        // Update analyse button state
+        updateAnalyseButtonState();
+        
+        console.log('File deleted, recording enabled');
+      });
+
+      // Hide feedback boxes initially
+      document.querySelector('.feedback-boxes-container').style.display = 'none';
+      
+      // Hide summary boxes initially
+      document.querySelector('.summary-boxes-container').style.display = 'none';
+      
+      // Hide export boxes initially
+      document.querySelector('.export-boxes-container').style.display = 'none';
+
+      // Initialize existing variables and functions
+      
+      // Add export functionality
+      document.addEventListener('DOMContentLoaded', function() {
+        const exportButton = document.querySelector('.export-button');
+        const exportTextbox = document.querySelector('.export-textbox');
+        
+        if (exportButton) {
+          exportButton.addEventListener('click', handleExportToSheets);
+        }
+        
+        function handleExportToSheets() {
+          // Get the analysis result
+          const analysisResult = document.getElementById('summary-content').textContent;
+          
+          if (!analysisResult) {
+            console.error('No analysis result available');
+            return;
+          }
+          
+          // Parse the result
+          const response = extractResponse(analysisResult);
+          
+          if (!response) {
+            console.error('Failed to parse analysis result');
+            return;
+          }
+          
+          // Get the sheets ID from the textbox
+          const sheetsId = exportTextbox.value.trim();
+          
+          // Extract sheet ID from URL if it's a full URL
+          let finalSheetsId = sheetsId;
+          const match = sheetsId.match(/\/d\/([^\/]+)(?:\/|$)/);
+          if (match && match[1]) {
+            finalSheetsId = match[1];
+          }
+          
+          // Update button state to "Exporting..."
+          exportButton.textContent = 'Exporting...';
+          exportButton.classList.add('exporting');
+          exportButton.disabled = true;
+          
+          // Send the data to the server
+          fetch('/export_to_sheets', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ 
+              analysis_result: response,
+              sheets_id: finalSheetsId
+            }),
+          })
+          .then(response => response.json())
+          .then(data => {
+            if (data.error) {
+              throw new Error(data.error);
+            }
+            // Update button state to success
+            exportButton.textContent = 'Success!';
+            exportButton.classList.remove('exporting');
+            exportButton.classList.add('success');
+            
+            // Reset button after 3 seconds
+            setTimeout(() => {
+              exportButton.textContent = 'Export to Sheets';
+              exportButton.classList.remove('success');
+              exportButton.disabled = false;
+            }, 3000);
+          })
+          .catch(error => {
+            console.error('Error exporting to sheets:', error);
+            // Update button state to error
+            exportButton.textContent = 'Try Again';
+            exportButton.classList.remove('exporting');
+            exportButton.classList.add('error');
+            exportButton.disabled = false;
+          });
+        }
+      });
+    </script>
+  </body>
+</html>
